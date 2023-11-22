@@ -13,14 +13,14 @@
 // 4
 
 
-// g++ -std=c++11 -o tsp tsp.cpp
+// g++ -std=c++11 -o tsp tsp.cpp    
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <set>
 #include <cmath>
 #include <unordered_set>
-
+#include <unordered_map>
 
 using namespace std;
 
@@ -38,10 +38,31 @@ double computeSavings(const vector<vector<double>>& graph, int i, int j, int hub
 }
 
 // Function to check if adding the segment (i, j) creates a cycle
-bool createsCycle(const unordered_set<int>& vertices, int i, int j) {
-    return vertices.count(i) != 0 && vertices.count(j) != 0;
+// bool createsCycle(const unordered_set<int>& vertices, int i, int j) {
+//     return vertices.count(i) != 0 && vertices.count(j) != 0;
+// }
+
+
+// Check if wanted pair is in our partialTour list
+bool checkCycle(vector<pair<int, int>> partialTour, int i, int j) {
+
+    bool i_exists = false;
+    bool j_exists = false;
+    for (auto& pair : partialTour) {
+        if (pair.first == i || pair.second == i) {
+            i_exists = true;
+        }
+
+        if (pair.first == j || pair.second == j) {
+            j_exists = true;
+        }
+    }
+
+    return (i_exists && j_exists);
 }
-/// Function to perform the savings-based heuristic
+
+
+// Function to perform the savings-based heuristic
 void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     int n = graph.size();
 
@@ -64,8 +85,6 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
 
     sort(savingsList.begin(), savingsList.end());
 
-
-
     // Step 7-19: Perform savings-based heuristic
     vector<pair<int, int>> partialTour;
     unordered_set<int> connectedComponents;
@@ -86,8 +105,11 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
             //     cout << it << endl;
             // }
 
+
+        
+        if (!checkCycle(partialTour, i, j)) {
         // Step 9: Check if shortcut does not create a cycle and degree(v) <= 2 for all v
-        if (!createsCycle(connectedComponents, i, j)) {
+        // if (!createsCycle(connectedComponents, i, j)) {
             // Step 10-16: Add segment to partial tour and update VH and connectedComponents
                         // cout << "VH.size(): " << VH.size() << endl;
 
@@ -121,9 +143,12 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
                 VH.erase(j);
             }
 
+        // }
         }
     }
+
     cout << "test" << endl; 
+
     // print degreeCount
     for (auto& it : degreeCount) {
         if (it.second < 2) {
