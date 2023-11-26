@@ -28,6 +28,47 @@ struct Point {
     double x, y;
 };
 
+
+// Union find algorithm
+class UnionFind {
+public:
+    unordered_map<int, int> sets;
+
+
+    // Find the set that our node belongs to and that set's parent
+    int find(int node) {
+
+        // If the node is not in the set, add it
+        if (sets.find(node) == sets.end()) {
+            sets[node] = node;
+            return node;
+        }
+
+
+        // If the node is the parent, return parent
+        if (sets[node] == node) {
+            return node;
+        }
+
+        // Recursively iterate through the set to find the parent
+        int root = find(sets[node]);
+
+        // Path compression - Create a direct connection from node in set to parent.
+        sets[node] = root;
+        return root;
+    }
+
+    // Add node2 to the set that root belongs to, if they are not already in the same set
+    void unionSets(int node1, int node2) {
+        int root1 = find(node1);
+        int root2 = find(node2);
+        
+        if (root1 != root2) {
+            sets[root1] = root2;
+        }
+    }
+};
+
 // Function to compute savings between vertices i and j
 double computeSavings(const vector<vector<double>>& graph, int i, int j, int hub) {
     // cout << "i: " << i << endl;
@@ -44,27 +85,38 @@ double computeSavings(const vector<vector<double>>& graph, int i, int j, int hub
 
 
 // Check if wanted pair is in our partialTour list
-bool checkCycle(vector<pair<int, int>> partialTour, int i, int j) {
+bool checkCycle(vector<pair<int, int>> partialTour, int i, int j, UnionFind& unionFind) {
 
-    bool i_exists = false;
-    bool j_exists = false;
-    for (auto& pair : partialTour) {
-        if (pair.first == i || pair.second == i) {
-            i_exists = true;
-        }
+    int root_i = unionFind.find(i);
+    int root_j = unionFind.find(j);
+    
+    // Return TRUE if they belong in the same set, i.e have the same parent
+    return root_i == root_j;
+    // bool i_exists = false;
+    // bool j_exists = false;
+    // for (auto& pair : partialTour) {
+    //     if (pair.first == i || pair.second == i) {
+    //         i_exists = true;
+    //     }
 
-        if (pair.first == j || pair.second == j) {
-            j_exists = true;
-        }
-    }
+    //     if (pair.first == j || pair.second == j) {
+    //         j_exists = true;
+    //     }
+    // }
 
-    return (i_exists && j_exists);
+    // return (i_exists && j_exists);
 }
 
 
 // Function to perform the savings-based heuristic
 void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     int n = graph.size();
+    UnionFind unionFind;
+
+
+    // Kombinera denna med degreecount
+    unordered_map<int, vector<int>> connectedComponents;
+
 
     // Step 2: VH = V - {h}
     unordered_set<int> VH;
@@ -87,7 +139,6 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
 
     // Step 7-19: Perform savings-based heuristic
     vector<pair<int, int>> partialTour;
-    unordered_set<int> connectedComponents;
 
     while (!savingsList.empty()) {
         const auto& savingsPair = savingsList.back();
@@ -96,7 +147,7 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
         int i = savingsPair.second.first;
         int j = savingsPair.second.second;
 
-            // cout << "i: " << i << endl;
+            cout << "savings: " << i << " " << j << endl;
             // cout << "j: " << j << endl;
 
             // print connectedComponents
@@ -106,8 +157,11 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
             // }
 
 
-        
-        if (!checkCycle(partialTour, i, j)) {
+            
+    
+
+
+        if (!checkCycle(partialTour, i, j, unionFind)) {
         // Step 9: Check if shortcut does not create a cycle and degree(v) <= 2 for all v
         // if (!createsCycle(connectedComponents, i, j)) {
             // Step 10-16: Add segment to partial tour and update VH and connectedComponents
@@ -130,7 +184,15 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
                 // connectedComponents.insert(i);
                 // connectedComponents.insert(j);
 
-                // Update degreeCount
+
+                
+                // Add j to the same set as the one i belongs to
+                unionFind.unionSets(i, j); 
+                
+            
+                connectedComponents[i].push_back(j);
+                connectedComponents[j].push_back(i);
+
                 degreeCount[i]++;
                 degreeCount[j]++;
             }
@@ -147,31 +209,58 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
         }
     }
 
-    cout << "test" << endl; 
-
-    // print degreeCount
     for (auto& it : degreeCount) {
         if (it.second < 2) {
             partialTour.push_back({hub, it.first});
+            connectedComponents[hub].push_back(it.first);
+                connectedComponents[it.first].push_back(hub);
         }
         // cout << it.first << " " << it.second << endl;
     }
 
-    // Step 19: Stitch together remaining two vertices and hub into final tour
-    // for (int v : VH) {
-    //     partialTour.push_back({hub, v});
+    // --------------------------------------------- 
+
+    // TILL JOSEPH: SKRIV LÖSNINGEN I DEN HÄR FUNKTIONEN FÖR PAIRS TILL PATH
+    printFinalPath(connectedComponents);
+
+
+    // Hjälpfunktion för att printa ut connectedComponents
+
+    // for (auto& it : connectedComponents) {
+    //     cout << it.first << ": ";
+    //     for (auto& it2 : it.second) {
+    //         cout << it2 << " ";
+    //     }        
+    //     // print new line
+    //     cout << endl;
     // }
 
-    // Output the results
-    double total = 0;
-    for (const auto& segment : partialTour) {
-        total += graph[segment.first][segment.second];
-        // cout << segment.first << endl;
-        // cout << segment.second << endl;
 
-        cout << segment.first << " " << segment.second << endl;
-    }
-    cout << "Total: " << total << endl;
+    // Onödig kod under här
+
+    // // Output the results
+    // double total = 0;
+    // for (const auto& segment : partialTour) {
+    //     total += graph[segment.first][segment.second];
+    //     // cout << segment.first << endl;
+    //     // cout << segment.second << endl;
+
+    //     cout << segment.first << " " << segment.second << endl;
+    // }
+    // cout << "Total: " << total << endl;
+}
+
+void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
+    vector<int> finalPath;
+    
+    // Mina tankar: 
+
+    // Möjligtvis en queue hade kunnat användas för att gå från ett pair till ett annat, men går säkert att göra på andra sätt
+    // Gå igenom första paret för 0: Lägg till value i index 0, sen värde 0, sen värde i index 1, så t.ex 4-0-2
+    // Sen gå till 2, kolla dess par, som kommer se ut så här: 2: [6, 0], kolla den som inte indexet som vi precis innan har lagt till, alltså 0, så lägg till 6, och vi har 4-0-2-6
+    // Och så vidare...
+
+
 }
 
 // Function to calculate Euclidean distance between two points
