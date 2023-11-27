@@ -1,19 +1,6 @@
 // Code is based on pseudocode from this website: https://www2.seas.gwu.edu/~simhaweb/champalg/tsp/tsp.html
+// To compile: g++ -std=c++11 -o tsp tsp.cpp
 
-// test1 good output based om best savings
-//7
-// 1
-// 9
-// 6
-// 3
-// 2
-// 8
-// 5
-// 0
-// 4
-
-
-// g++ -std=c++11 -o tsp tsp.cpp    
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -22,15 +9,12 @@
 #include <stdlib.h>
 #include <unordered_set>
 #include <unordered_map>
-#include <queue>
 
 using namespace std;
 
 struct Point {
     double x, y;
 };
-
-
 
 // Union find algorithm
 class UnionFind {
@@ -89,35 +73,13 @@ bool checkCycle(vector<pair<int, int>> partialTour, int i, int j, UnionFind& uni
 void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
     int counter = 0;
     int offset = 0;
-    unordered_map<int, int> moveOrder;
-
-    // for(int i=0; i<bestPairs.size(); i = offset){
-    //     std::cout << "i: " << i << std::endl; // i should be 5 on the third iteration but we are never going in here after the second iteration.
-
-    //     if(i!=0){
-    //         counter++;
-    //     }
-    //     moveOrder.insert({i, counter});
-    //     vector<int> connectedNodes = bestPairs[i];
-    //     for (int value: connectedNodes){
-    //         if(bestPairs.count(value)!=0){
-    //             offset = value;
-    //         }
-    //     }
-
-    //     bestPairs.erase(i);
-    //     std::cout << "offset: " << offset << std::endl;
-    //     std::cout << "size of bestPairs: " << bestPairs.size() << std::endl;
-    // }
 
     while (!bestPairs.empty()) {
-        // std::cout << "i: " << offset << std::endl;
 
         if (offset != 0) {
             counter++;
         }
         cout << offset << endl;
-        // moveOrder.insert({offset, counter});
 
         const std::vector<int>& connectedNodes = bestPairs[offset];
         int nextOffset = -1;  // Initialize nextOffset to an invalid value
@@ -133,23 +95,6 @@ void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
         bestPairs.erase(offset);
         offset = nextOffset;
     }
-
-    //  for (const auto& pair : moveOrder) {
-    //     std::cout << pair.first << " " << pair.second << std::endl;
-    //     // std::cout << pair.second << std::endl;
-    // }
-
-
-    // TODO: print the moveOrder as Kattis wants it.
-
-    // std::vector<std::pair<int, int>> moveOrderVector(moveOrder.begin(), moveOrder.end());
-    // sort(moveOrderVector.begin(), moveOrderVector.end());
-
-
-    // for (const auto& pair : moveOrderVector) {
-    //     std::cout << pair.second << std::endl;
-    // }
-
 }
 
 // Function to perform the savings-based heuristic
@@ -261,6 +206,29 @@ vector<vector<double>> createGraph(const vector<Point>& points, int size) {
     return graph;
 }
 
+
+// Function that will return the index of the most central point of the given points
+int findCentralPoint(std::vector<Point> points){
+
+    int mostCentralPointIndex = 0;
+    for(int i=0; i<points.size(); ++i){
+
+        double totalDistance = 0.0;
+        double minAverageDistance = 100000.0;
+        for(const auto& other : points){
+            totalDistance += calculateDistance(points[i], other);
+        }
+        double averageDistance = totalDistance/points.size();
+
+        if(averageDistance < minAverageDistance){
+            minAverageDistance = averageDistance;
+            mostCentralPointIndex = i;
+        }
+    }
+
+    return mostCentralPointIndex;
+}
+
 int main(int argc, char** argv) {
 
     int size;
@@ -275,7 +243,7 @@ int main(int argc, char** argv) {
         coordinates.push_back(point);
     }
 
-    // Corner case, Hypotheisis about test 6 ==> Only one point
+    // Corner case, Hypothesis about test 6 ==> Only one point
     if (size == 1){
         std::cout << 0 << std::endl;
         return 0;
@@ -294,15 +262,11 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-
     vector<vector<double>> graph = createGraph(coordinates, size);
-
-    int hub = 0;
+    int hub = findCentralPoint(coordinates);
 
     // Perform savings-based heuristic
     savingsHeuristic(graph, hub);
 
     return 0;
-
 }
-
