@@ -31,6 +31,7 @@ struct Point {
 };
 
 
+
 // Union find algorithm
 class UnionFind {
 public:
@@ -161,18 +162,22 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
 
     // Step 2: VH = V - {h}
     unordered_set<int> VH;
-    for (int v = 1; v < n; ++v) {
-        VH.insert(v);
+    for (int v = 0; v < n; ++v) {
+        if (v != hub) {
+            VH.insert(v);
+        }
     }
 
     unordered_map<int, int> degreeCount;
 
     // Step 3-6: Compute savings and sort in increasing order
     vector<pair<double, pair<int, int>>> savingsList;
-    for (int i = 1; i < n; ++i) {
+    for (int i = 0; i < n; ++i) {
         for (int j = i + 1; j < n; ++j) {  // Start from i + 1 to avoid duplicates
+            if (i != hub && j != hub) {
             double savingsValue = computeSavings(graph, i, j, hub);
             savingsList.push_back({savingsValue, {i, j}});
+        }
     }
 }
 
@@ -188,7 +193,7 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
         int i = savingsPair.second.first;
         int j = savingsPair.second.second;
 
-        //cout << "savings: " << i << " " << j << endl;
+        // cout << "savings: " << i << " " << j << endl;
 
         if (!checkCycle(partialTour, i, j, unionFind)) {
         // Step 9: Check if shortcut does not create a cycle and degree(v) <= 2 for all v
@@ -270,7 +275,7 @@ int main(int argc, char** argv) {
         coordinates.push_back(point);
     }
 
-    // Corner case, test 6 ==> Only one point
+    // Corner case, Hypotheisis about test 6 ==> Only one point
     if (size == 1){
         std::cout << 0 << std::endl;
         return 0;
@@ -300,3 +305,4 @@ int main(int argc, char** argv) {
     return 0;
 
 }
+
