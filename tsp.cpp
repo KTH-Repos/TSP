@@ -115,8 +115,8 @@ void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
         if (offset != 0) {
             counter++;
         }
-
-        moveOrder.insert({offset, counter});
+        cout << offset << endl;
+        // moveOrder.insert({offset, counter});
 
         const std::vector<int>& connectedNodes = bestPairs[offset];
         int nextOffset = -1;  // Initialize nextOffset to an invalid value
@@ -133,14 +133,21 @@ void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
         offset = nextOffset;
     }
 
+    //  for (const auto& pair : moveOrder) {
+    //     std::cout << pair.first << " " << pair.second << std::endl;
+    //     // std::cout << pair.second << std::endl;
+    // }
+
+
     // TODO: print the moveOrder as Kattis wants it.
 
-    std::vector<std::pair<int, int>> moveOrderVector(moveOrder.begin(), moveOrder.end());
-    sort(moveOrderVector.begin(), moveOrderVector.end());
+    // std::vector<std::pair<int, int>> moveOrderVector(moveOrder.begin(), moveOrder.end());
+    // sort(moveOrderVector.begin(), moveOrderVector.end());
 
-    for (const auto& pair : moveOrderVector) {
-        std::cout << pair.second << std::endl;
-    }
+
+    // for (const auto& pair : moveOrderVector) {
+    //     std::cout << pair.second << std::endl;
+    // }
 
 }
 
@@ -239,10 +246,10 @@ vector<vector<double>> createGraph(const vector<Point>& points, int size) {
 
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            if (i != j) {
+            // if (i != j) {
                 // Calculate Euclidean distance between points i and j
                 graph[i][j] = calculateDistance(points[i], points[j]);
-            }
+            // }
         }
     }
 
