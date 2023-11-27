@@ -19,8 +19,10 @@
 #include <algorithm>
 #include <set>
 #include <cmath>
+#include <stdlib.h>
 #include <unordered_set>
 #include <unordered_map>
+#include <queue>
 
 using namespace std;
 
@@ -34,7 +36,6 @@ class UnionFind {
 public:
     unordered_map<int, int> sets;
 
-
     // Find the set that our node belongs to and that set's parent
     int find(int node) {
 
@@ -43,7 +44,6 @@ public:
             sets[node] = node;
             return node;
         }
-
 
         // If the node is the parent, return parent
         if (sets[node] == node) {
@@ -71,17 +71,8 @@ public:
 
 // Function to compute savings between vertices i and j
 double computeSavings(const vector<vector<double>>& graph, int i, int j, int hub) {
-    // cout << "i: " << i << endl;
-    // cout << "j: " << j << endl;
-    // cout << "Savings: " << graph[i][hub] + graph[j][hub] - graph[i][j]<< endl;
     return graph[i][hub] + graph[j][hub] - graph[i][j];
-
 }
-
-// Function to check if adding the segment (i, j) creates a cycle
-// bool createsCycle(const unordered_set<int>& vertices, int i, int j) {
-//     return vertices.count(i) != 0 && vertices.count(j) != 0;
-// }
 
 
 // Check if wanted pair is in our partialTour list
@@ -92,31 +83,74 @@ bool checkCycle(vector<pair<int, int>> partialTour, int i, int j, UnionFind& uni
     
     // Return TRUE if they belong in the same set, i.e have the same parent
     return root_i == root_j;
-    // bool i_exists = false;
-    // bool j_exists = false;
-    // for (auto& pair : partialTour) {
-    //     if (pair.first == i || pair.second == i) {
-    //         i_exists = true;
-    //     }
-
-    //     if (pair.first == j || pair.second == j) {
-    //         j_exists = true;
-    //     }
-    // }
-
-    // return (i_exists && j_exists);
 }
 
+void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
+    int counter = 0;
+    int offset = 0;
+    unordered_map<int, int> moveOrder;
+
+    // for(int i=0; i<bestPairs.size(); i = offset){
+    //     std::cout << "i: " << i << std::endl; // i should be 5 on the third iteration but we are never going in here after the second iteration.
+
+    //     if(i!=0){
+    //         counter++;
+    //     }
+    //     moveOrder.insert({i, counter});
+    //     vector<int> connectedNodes = bestPairs[i];
+    //     for (int value: connectedNodes){
+    //         if(bestPairs.count(value)!=0){
+    //             offset = value;
+    //         }
+    //     }
+
+    //     bestPairs.erase(i);
+    //     std::cout << "offset: " << offset << std::endl;
+    //     std::cout << "size of bestPairs: " << bestPairs.size() << std::endl;
+    // }
+
+    while (!bestPairs.empty()) {
+        // std::cout << "i: " << offset << std::endl;
+
+        if (offset != 0) {
+            counter++;
+        }
+
+        moveOrder.insert({offset, counter});
+
+        const std::vector<int>& connectedNodes = bestPairs[offset];
+        int nextOffset = -1;  // Initialize nextOffset to an invalid value
+
+        for (int value : connectedNodes) {
+            if (bestPairs.count(value) != 0) {
+                nextOffset = value;
+                break;  // Exit the inner loop if the value is found
+            }
+        }
+
+        // Erase the current offset
+        bestPairs.erase(offset);
+        offset = nextOffset;
+    }
+
+    // TODO: print the moveOrder as Kattis wants it.
+
+    std::vector<std::pair<int, int>> moveOrderVector(moveOrder.begin(), moveOrder.end());
+    sort(moveOrderVector.begin(), moveOrderVector.end());
+
+    for (const auto& pair : moveOrderVector) {
+        std::cout << pair.second << std::endl;
+    }
+
+}
 
 // Function to perform the savings-based heuristic
 void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     int n = graph.size();
     UnionFind unionFind;
 
-
     // Kombinera denna med degreecount
     unordered_map<int, vector<int>> connectedComponents;
-
 
     // Step 2: VH = V - {h}
     unordered_set<int> VH;
@@ -147,36 +181,13 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
         int i = savingsPair.second.first;
         int j = savingsPair.second.second;
 
-            cout << "savings: " << i << " " << j << endl;
-            // cout << "j: " << j << endl;
-
-            // print connectedComponents
-            // cout << "connected comps" << endl;  
-            // for (auto& it : connectedComponents) {
-            //     cout << it << endl;
-            // }
-
-
-            
-    
-
+        //cout << "savings: " << i << " " << j << endl;
 
         if (!checkCycle(partialTour, i, j, unionFind)) {
         // Step 9: Check if shortcut does not create a cycle and degree(v) <= 2 for all v
-        // if (!createsCycle(connectedComponents, i, j)) {
-            // Step 10-16: Add segment to partial tour and update VH and connectedComponents
-                        // cout << "VH.size(): " << VH.size() << endl;
-
-            // cout << "included"<< endl;
-            // cout << "i: " << i << endl;
-            // cout << "j: " << j << endl;
-
-            // print degreeCount
-            // for (auto& it : degreeCount) {
-            //     cout << it.first << " " << it.second << endl;
-            // }
+        
             
-             // Step 10-16: Add segment to partial tour and update VH and connectedComponents
+            // Step 10-16: Add segment to partial tour and update VH and connectedComponents
 
             // Step 10: Check if degree(v) >= 2
             if (degreeCount[i] < 2 && degreeCount[j] < 2) {
@@ -184,12 +195,9 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
                 // connectedComponents.insert(i);
                 // connectedComponents.insert(j);
 
-
-                
                 // Add j to the same set as the one i belongs to
                 unionFind.unionSets(i, j); 
-                
-            
+
                 connectedComponents[i].push_back(j);
                 connectedComponents[j].push_back(i);
 
@@ -205,7 +213,6 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
                 VH.erase(j);
             }
 
-        // }
         }
     }
 
@@ -213,54 +220,11 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
         if (it.second < 2) {
             partialTour.push_back({hub, it.first});
             connectedComponents[hub].push_back(it.first);
-                connectedComponents[it.first].push_back(hub);
+            connectedComponents[it.first].push_back(hub);
         }
-        // cout << it.first << " " << it.second << endl;
     }
 
-    // --------------------------------------------- 
-
-    // TILL JOSEPH: SKRIV LÖSNINGEN I DEN HÄR FUNKTIONEN FÖR PAIRS TILL PATH
     printFinalPath(connectedComponents);
-
-
-    // Hjälpfunktion för att printa ut connectedComponents
-
-    // for (auto& it : connectedComponents) {
-    //     cout << it.first << ": ";
-    //     for (auto& it2 : it.second) {
-    //         cout << it2 << " ";
-    //     }        
-    //     // print new line
-    //     cout << endl;
-    // }
-
-
-    // Onödig kod under här
-
-    // // Output the results
-    // double total = 0;
-    // for (const auto& segment : partialTour) {
-    //     total += graph[segment.first][segment.second];
-    //     // cout << segment.first << endl;
-    //     // cout << segment.second << endl;
-
-    //     cout << segment.first << " " << segment.second << endl;
-    // }
-    // cout << "Total: " << total << endl;
-}
-
-void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
-    vector<int> finalPath;
-    
-    // Mina tankar: 
-
-    // Möjligtvis en queue hade kunnat användas för att gå från ett pair till ett annat, men går säkert att göra på andra sätt
-    // Gå igenom första paret för 0: Lägg till value i index 0, sen värde 0, sen värde i index 1, så t.ex 4-0-2
-    // Sen gå till 2, kolla dess par, som kommer se ut så här: 2: [6, 0], kolla den som inte indexet som vi precis innan har lagt till, alltså 0, så lägg till 6, och vi har 4-0-2-6
-    // Och så vidare...
-
-
 }
 
 // Function to calculate Euclidean distance between two points
@@ -282,20 +246,10 @@ vector<vector<double>> createGraph(const vector<Point>& points, int size) {
         }
     }
 
-    // Print the distance matrix
-// cout << "Distance Matrix:" << endl;
-// for (int i = 0; i < n; ++i) {
-//     for (int j = 0; j < n; ++j) {
-//         cout << graph[i][j] << " ";
-//     }
-//     cout << endl;
-// }
-
     return graph;
 }
 
 int main(int argc, char** argv) {
-// int main() {
 
     int size;
 
@@ -308,31 +262,6 @@ int main(int argc, char** argv) {
         std::cin >> point.y;
         coordinates.push_back(point);
     }
-
-    // int size = 10;
-    // int size2 = 6;
-    // vector<Point> coordinates = {
-    //     {95.0129, 61.5432},
-    //     {23.1139, 79.1937},
-    //     {60.6843, 92.1813},
-    //     {48.5982, 73.8207},
-    //     {89.1299, 17.6266},
-    //     {76.2097, 40.5706},
-    //     {45.6468, 93.5470},
-    //     {1.8504, 91.6904},
-    //     {82.1407, 41.0270},
-    //     {44.4703, 89.3650}
-    // };
-
-    // vector<Point> coordinates2 = {
-    //     {0.0000, 2.0000},
-    //     {4.0000, 2.0000},
-    //     {8.0000, 2.0000},
-    //     {0.0000, 4.0000},
-    //     {4.0000, 0.0000},
-    //     {8.0000, 4.0000}
-    // };
-
 
     // Corner case, test 6 ==> Only one point
     if (size == 1){
@@ -355,9 +284,6 @@ int main(int argc, char** argv) {
 
 
     vector<vector<double>> graph = createGraph(coordinates, size);
-
-    // vector<vector<double>> graph = createGraph(coordinates2, size2);
-
 
     int hub = 0;
 
