@@ -133,9 +133,9 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
             if (i != hub && j != hub) {
             double savingsValue = computeSavings(graph, i, j, hub);
             savingsList.push_back({savingsValue, {i, j}});
+            }
         }
     }
-}
 
     sort(savingsList.begin(), savingsList.end());
 
@@ -192,20 +192,42 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
         }
     }
 
+    // cout << "Partial Tour:" << endl;
+    // for (const auto& segment : partialTour) {
+    //     cout << segment.first << segment.second << endl;
+    // }
+
+
     double totalDistance = totalDistanceCalc(graph, partialTour);
     // At this point in the code, we have a graph full constructed by the CW algorithm.
     // Now we will run some local optimizations on the graph.
-    for(int i=0; i<connectedComponents.size(); ++i){
 
-        for(int j=0; j<connectedComponents[i].size(); ++j){
+    bool canImprove = true;
+    while(canImprove){
+        canImprove = false;
 
-            // manipulering här
-            
-            // TODO: I should send an updated partialTour to totalDistanceCalc not the original one. 
-            double newTotalDistance= totalDistanceCalc(graph, partialTour);
+        for(int i=0; i<partialTour.size()-1; ++i){
+            for(int j=i+1; j<partialTour.size(); ++j){
+
+                // this is inefficient.
+                vector<pair<int, int>> newTour = partialTour;
+
+                // this is sus.
+                reverse(newTour.begin() + i + 1, newTour.begin() + j + 1);
+
+                double newTotalDistance= totalDistanceCalc(graph, newTour);
+                if(newTotalDistance < totalDistance){
+                    partialTour = newTour;
+                    totalDistance = newTotalDistance;
+                    canImprove = true;
+                }
+            }
         }
+
     }
 
+    // TODO: update connectedComponentes based on the new tour.
+    
     printFinalPath(connectedComponents);
 }
 
