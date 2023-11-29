@@ -97,6 +97,17 @@ void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
     }
 }
 
+// Function to calculate the total distance of a given tour
+double totalDistanceCalc(const vector<vector<double>>& graph, vector<pair<int, int>> finalTour){
+
+    double totalDistance = 0;
+    for (const auto& segment : finalTour) {
+        totalDistance += graph[segment.first][segment.second];
+    }
+
+    return totalDistance;
+}
+
 // Function to perform the savings-based heuristic
 void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     int n = graph.size();
@@ -178,6 +189,20 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
             partialTour.push_back({hub, it.first});
             connectedComponents[hub].push_back(it.first);
             connectedComponents[it.first].push_back(hub);
+        }
+    }
+
+    double totalDistance = totalDistanceCalc(graph, partialTour);
+    // At this point in the code, we have a graph full constructed by the CW algorithm.
+    // Now we will run some local optimizations on the graph.
+    for(int i=0; i<connectedComponents.size(); ++i){
+
+        for(int j=0; j<connectedComponents[i].size(); ++j){
+
+            // manipulering här
+            
+            // TODO: I should send an updated partialTour to totalDistanceCalc not the original one. 
+            double newTotalDistance= totalDistanceCalc(graph, partialTour);
         }
     }
 
