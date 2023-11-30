@@ -218,8 +218,8 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     // Now we will run some local optimizations on the graph.
     bool canImprove = true;
     int limit_counter = 0;
-    const int MAX_CONSECUTIVE_NO_IMPROVEMENT = 10;  
-    int consecutiveNoImprovement = 0;
+    // const int MAX_CONSECUTIVE_NO_IMPROVEMENT = 10;  
+    // int consecutiveNoImprovement = 0;
 
 
     while (canImprove && limit_counter < 100) {
