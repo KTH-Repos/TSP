@@ -111,9 +111,9 @@ double totalDistanceCalc(const vector<vector<double>>& graph, vector<pair<int, i
     return totalDistance;
 }
 
-// void do2Opt(vector<int> &path, int i, int j) {
-// 	reverse(begin(path) + i + 1, begin(path) + j + 1);
-// }
+void do2Opt(vector<int> &path, int i, int j) {
+	reverse(begin(path) + i + 1, begin(path) + j + 1);
+}
 
 // Function to perform the savings-based heuristic
 void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
@@ -221,6 +221,7 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     const int MAX_CONSECUTIVE_NO_IMPROVEMENT = 10;  
     int consecutiveNoImprovement = 0;
 
+
     while (canImprove && limit_counter < 100) {
         canImprove = false;
         int path_length = finalPath.size();
@@ -233,14 +234,14 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
                 + graph[finalPath[(i + 1)% path_length]][finalPath[(j + 1) % path_length]];
                 
 
-
+                // abs(j-1) because reversing two indices that are next to each other has no effect
                 if (lengthDelta < 0 && abs(j-i) > 1) {
                     // cout << "i" << i << " j" << j << endl;
                     
 
                     
-                    // do2Opt(finalPath, i, j);
-                    reverse(begin(finalPath) + i + 1, begin(finalPath) + j+1);
+                    do2Opt(finalPath, i, j);
+                    
 
                     canImprove = true;
                     // print finalPath
