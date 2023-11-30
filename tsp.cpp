@@ -59,7 +59,6 @@ double computeSavings(const vector<vector<double>>& graph, int i, int j, int hub
     return graph[i][hub] + graph[j][hub] - graph[i][j];
 }
 
-
 // Check if wanted pair is in our partialTour list
 bool checkCycle(vector<pair<int, int>> partialTour, int i, int j, UnionFind& unionFind) {
 
@@ -201,40 +200,49 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
 
     vector<int> finalPath = getFinalPath(connectedComponents);
 
-    double totalDistance = totalDistanceCalc(graph, partialTour);
+    //cout << "before 2-opt: " << endl;
+    //for(auto& node: finalPath){
+    //    cout << node << endl;
+    //}
+    //cout << endl;
+    
     // At this point in the code, we have a graph full constructed by the CW algorithm.
     // Now we will run some local optimizations on the graph.
     bool canImprove = true;
-    int limit_counter = 0;
-
-
-    while (canImprove && limit_counter < 100) {
+    // int limit_counter = 0;
+    int counter = 0;
+    // limit_counter < 100 condition is removed.
+    while (canImprove) {
         canImprove = false;
         int path_length = finalPath.size();
-        for (int i = 0; i <= path_length - 1 - 1; i++) {
-            for (int j = i + 1; j < path_length; j++) {
+        for (int i = 0; i < path_length - 1; i++) {
+            for (int j = i + 2; j < path_length - 1; j++) {
 
-                double lengthDelta = -graph[finalPath[i]][finalPath[(i + 1) %path_length]] 
-                - graph[finalPath[j]][finalPath[(j+1) % path_length]]
+                double lengthDelta = -graph[finalPath[i]][finalPath[(i + 1) % path_length]] 
+                - graph[finalPath[j]][finalPath[(j + 1) % path_length]]
                 + graph[finalPath[i]][finalPath[j]]
-                + graph[finalPath[(i + 1)% path_length]][finalPath[(j + 1) % path_length]];
+                + graph[finalPath[(i + 1) % path_length]][finalPath[(j + 1) % path_length]];
                 
-
                 // abs(j-1) because reversing two indices that are next to each other has no effect
                 if (lengthDelta < 0 && abs(j-i) > 1) {
                     do2Opt(finalPath, i, j);
                     canImprove = true;
+                    counter++;
                 }
             }
         }
 
-        limit_counter++;
+        // limit_counter++;
     }
 
+
+    // this prints out amount of improvements achieved.
+    cout << "counter: " << counter << endl;
+    //cout << "after 2-opt: " << endl;
     for (const auto& node : finalPath) {
         cout << node << endl;
     }
-    cout << endl;
+    //cout << endl;
     
 }
 
