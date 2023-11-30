@@ -70,16 +70,17 @@ bool checkCycle(vector<pair<int, int>> partialTour, int i, int j, UnionFind& uni
     return root_i == root_j;
 }
 
-void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
+vector<int> getFinalPath(unordered_map<int, vector<int>> bestPairs) {
     int counter = 0;
     int offset = 0;
-
+    vector<int> finalPath;
     while (!bestPairs.empty()) {
 
         if (offset != 0) {
             counter++;
         }
-        cout << offset << endl;
+        // cout << offset << endl;
+        finalPath.push_back(offset);
 
         const std::vector<int>& connectedNodes = bestPairs[offset];
         int nextOffset = -1;  // Initialize nextOffset to an invalid value
@@ -95,6 +96,8 @@ void printFinalPath(unordered_map<int, vector<int>> bestPairs) {
         bestPairs.erase(offset);
         offset = nextOffset;
     }
+
+    return finalPath;
 }
 
 // Function to calculate the total distance of a given tour
@@ -106,6 +109,10 @@ double totalDistanceCalc(const vector<vector<double>>& graph, vector<pair<int, i
     }
 
     return totalDistance;
+}
+
+void do2Opt(vector<int> &path, int i, int j) {
+	reverse(begin(path) + i + 1, begin(path) + j + 1);
 }
 
 // Function to perform the savings-based heuristic
@@ -197,39 +204,111 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     //     cout << segment.first << segment.second << endl;
     // }
 
+    vector<int> finalPath = getFinalPath(connectedComponents);
 
     double totalDistance = totalDistanceCalc(graph, partialTour);
     // At this point in the code, we have a graph full constructed by the CW algorithm.
     // Now we will run some local optimizations on the graph.
-
     bool canImprove = true;
-    while(canImprove){
-        canImprove = false;
+    int limit_counter = 0;
+    const int MAX_CONSECUTIVE_NO_IMPROVEMENT = 10;  
+    int consecutiveNoImprovement = 0;
 
-        for(int i=0; i<partialTour.size()-1; ++i){
-            for(int j=i+1; j<partialTour.size(); ++j){
+    while (canImprove) {
+    canImprove = false;
+    for (int i = 0; i < finalPath.size() - 1 - 1; ++i) {
+        for (int j = i + 1; j < finalPath.size(); j++) {
 
-                // this is inefficient.
-                vector<pair<int, int>> newTour = partialTour;
+            double lengthDelta = -graph[finalPath[i]][finalPath[(i + 1) % finalPath.size()]] 
+            - graph[finalPath[(j)]][finalPath[(j+1) % finalPath.size()]]
+            + graph[finalPath[i]][finalPath[j]]
+            + graph[finalPath[(i + 1)% finalPath.size()]][finalPath[(j + 1) % finalPath.size()]];
+            
+            
+            if (lengthDelta < 0) {
+                // cout << "i" << i << " j" << j << endl;
+                
+                do2Opt(finalPath, i, j);
 
-                // this is sus.
-                reverse(newTour.begin() + i + 1, newTour.begin() + j + 1);
-
-                double newTotalDistance= totalDistanceCalc(graph, newTour);
-                if(newTotalDistance < totalDistance){
-                    partialTour = newTour;
-                    totalDistance = newTotalDistance;
-                    canImprove = true;
-                }
+                // print finalPath
+                // cout << "Final Path:" << endl;
+                // for (const auto& node : finalPath) {
+                //     cout << node << " ";
+                // }
             }
         }
-
     }
+
+    if (!canImprove) {
+        consecutiveNoImprovement++;
+        if (consecutiveNoImprovement >= MAX_CONSECUTIVE_NO_IMPROVEMENT) {
+            break;
+        }
+    }
+
+    // Recalculate total distance after the entire 2-opt optimization loop
+    totalDistance = totalDistanceCalc(graph, partialTour);
+
+    limit_counter++;
+
+
+        // if (!canImprove) {
+        //     consecutiveNoImprovement++;
+        //     if (consecutiveNoImprovement >= MAX_CONSECUTIVE_NO_IMPROVEMENT) {
+        //         break;
+        //     }
+        // }
+        
+    }
+
+
+    // cout << "Partial Tour:" << endl;
+    // for (const auto& segment : partialTour) {
+    //     cout << segment.first << segment.second << endl;
+    // }
+
+    // unordered_map<int, vector<int>> final_connectedComponents;
+
+    // // cout << "Partial Tour:" << endl;
+    // for (const auto& segment : partialTour) {
+    //     final_connectedComponents[segment.first].push_back(segment.second);
+    //     final_connectedComponents[segment.second].push_back(segment.first);
+    // }
+    
+    //print finalPath
+    // cout << "Final Path:" << endl;
+    for (const auto& node : finalPath) {
+        cout << node << endl;
+    }
+    cout << endl;
+
+
 
     // TODO: update connectedComponentes based on the new tour.
     
-    printFinalPath(connectedComponents);
+    // cout << "Connected Components:" << endl;
+    // for (const auto& component : connectedComponents) {
+    //     cout << component.first << ": ";
+    //     for (const auto& node : component.second) {
+    //         cout << node << " ";
+    //     }
+    //     cout << endl;
+    // }
+
+    // //print final_connectedComponents
+    // cout << "Final Connected Components:" << endl;
+    // for (const auto& component : final_connectedComponents) {
+    //     cout << component.first << ": ";
+    //     for (const auto& node : component.second) {
+    //         cout << node << " ";
+    //     }
+    //     cout << endl;
+    // }
+
+    
 }
+
+
 
 // Function to calculate Euclidean distance between two points
 double calculateDistance(const Point& p1, const Point& p2) {
@@ -258,10 +337,11 @@ vector<vector<double>> createGraph(const vector<Point>& points, int size) {
 int findCentralPoint(std::vector<Point> points){
 
     int mostCentralPointIndex = 0;
+    double minAverageDistance = 100000.0;
+
     for(int i=0; i<points.size(); ++i){
 
         double totalDistance = 0.0;
-        double minAverageDistance = 100000.0;
         for(const auto& other : points){
             totalDistance += calculateDistance(points[i], other);
         }
@@ -317,3 +397,4 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
