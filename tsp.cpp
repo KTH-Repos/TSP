@@ -111,9 +111,9 @@ double totalDistanceCalc(const vector<vector<double>>& graph, vector<pair<int, i
     return totalDistance;
 }
 
-void do2Opt(vector<int> &path, int i, int j) {
-	reverse(begin(path) + i + 1, begin(path) + j + 1);
-}
+// void do2Opt(vector<int> &path, int i, int j) {
+// 	reverse(begin(path) + i + 1, begin(path) + j + 1);
+// }
 
 // Function to perform the savings-based heuristic
 void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
@@ -204,7 +204,14 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     //     cout << segment.first << segment.second << endl;
     // }
 
+    
+
     vector<int> finalPath = getFinalPath(connectedComponents);
+
+    // cout << "Final Path:" << endl;
+    //             for (const auto& node : finalPath) {
+    //                 cout << node << " ";
+    //             }
 
     double totalDistance = totalDistanceCalc(graph, partialTour);
     // At this point in the code, we have a graph full constructed by the CW algorithm.
@@ -214,40 +221,48 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     const int MAX_CONSECUTIVE_NO_IMPROVEMENT = 10;  
     int consecutiveNoImprovement = 0;
 
-    while (canImprove) {
-    canImprove = false;
-    for (int i = 0; i < finalPath.size() - 1 - 1; ++i) {
-        for (int j = i + 1; j < finalPath.size(); j++) {
+    while (canImprove && limit_counter < 100) {
+        canImprove = false;
+        int path_length = finalPath.size();
+        for (int i = 0; i <= path_length - 1 - 1; i++) {
+            for (int j = i + 1; j < path_length; j++) {
 
-            double lengthDelta = -graph[finalPath[i]][finalPath[(i + 1) % finalPath.size()]] 
-            - graph[finalPath[(j)]][finalPath[(j+1) % finalPath.size()]]
-            + graph[finalPath[i]][finalPath[j]]
-            + graph[finalPath[(i + 1)% finalPath.size()]][finalPath[(j + 1) % finalPath.size()]];
-            
-            
-            if (lengthDelta < 0) {
-                // cout << "i" << i << " j" << j << endl;
+                double lengthDelta = -graph[finalPath[i]][finalPath[(i + 1) %path_length]] 
+                - graph[finalPath[j]][finalPath[(j+1) % path_length]]
+                + graph[finalPath[i]][finalPath[j]]
+                + graph[finalPath[(i + 1)% path_length]][finalPath[(j + 1) % path_length]];
                 
-                do2Opt(finalPath, i, j);
 
-                // print finalPath
-                // cout << "Final Path:" << endl;
-                // for (const auto& node : finalPath) {
-                //     cout << node << " ";
-                // }
+
+                if (lengthDelta < 0 && abs(j-i) > 1) {
+                    // cout << "i" << i << " j" << j << endl;
+                    
+
+                    
+                    // do2Opt(finalPath, i, j);
+                    reverse(begin(finalPath) + i + 1, begin(finalPath) + j+1);
+
+                    canImprove = true;
+                    // print finalPath
+                    // cout << "Final Path:" << endl;
+                    // for (const auto& node : finalPath) {
+                    //     cout << node << " ";
+                    // }
+                    // cout << endl;
+                }
             }
+           
         }
-    }
 
-    if (!canImprove) {
-        consecutiveNoImprovement++;
-        if (consecutiveNoImprovement >= MAX_CONSECUTIVE_NO_IMPROVEMENT) {
-            break;
-        }
-    }
+    // if (!canImprove) {
+    //     consecutiveNoImprovement++;
+    //     if (consecutiveNoImprovement >= MAX_CONSECUTIVE_NO_IMPROVEMENT) {
+    //         break;
+    //     }
+    // }
 
     // Recalculate total distance after the entire 2-opt optimization loop
-    totalDistance = totalDistanceCalc(graph, partialTour);
+    // totalDistance = totalDistanceCalc(graph, partialTour);
 
     limit_counter++;
 
