@@ -199,27 +199,13 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
         }
     }
 
-    // cout << "Partial Tour:" << endl;
-    // for (const auto& segment : partialTour) {
-    //     cout << segment.first << segment.second << endl;
-    // }
-
-    
-
     vector<int> finalPath = getFinalPath(connectedComponents);
-
-    // cout << "Final Path:" << endl;
-    //             for (const auto& node : finalPath) {
-    //                 cout << node << " ";
-    //             }
 
     double totalDistance = totalDistanceCalc(graph, partialTour);
     // At this point in the code, we have a graph full constructed by the CW algorithm.
     // Now we will run some local optimizations on the graph.
     bool canImprove = true;
     int limit_counter = 0;
-    // const int MAX_CONSECUTIVE_NO_IMPROVEMENT = 10;  
-    // int consecutiveNoImprovement = 0;
 
 
     while (canImprove && limit_counter < 100) {
@@ -236,95 +222,21 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
 
                 // abs(j-1) because reversing two indices that are next to each other has no effect
                 if (lengthDelta < 0 && abs(j-i) > 1) {
-                    // cout << "i" << i << " j" << j << endl;
-                    
-
-                    
                     do2Opt(finalPath, i, j);
-                    
-
                     canImprove = true;
-                    // print finalPath
-                    // cout << "Final Path:" << endl;
-                    // for (const auto& node : finalPath) {
-                    //     cout << node << " ";
-                    // }
-                    // cout << endl;
                 }
             }
-           
         }
 
-    // if (!canImprove) {
-    //     consecutiveNoImprovement++;
-    //     if (consecutiveNoImprovement >= MAX_CONSECUTIVE_NO_IMPROVEMENT) {
-    //         break;
-    //     }
-    // }
-
-    // Recalculate total distance after the entire 2-opt optimization loop
-    // totalDistance = totalDistanceCalc(graph, partialTour);
-
-    limit_counter++;
-
-
-        // if (!canImprove) {
-        //     consecutiveNoImprovement++;
-        //     if (consecutiveNoImprovement >= MAX_CONSECUTIVE_NO_IMPROVEMENT) {
-        //         break;
-        //     }
-        // }
-        
+        limit_counter++;
     }
 
-
-    // cout << "Partial Tour:" << endl;
-    // for (const auto& segment : partialTour) {
-    //     cout << segment.first << segment.second << endl;
-    // }
-
-    // unordered_map<int, vector<int>> final_connectedComponents;
-
-    // // cout << "Partial Tour:" << endl;
-    // for (const auto& segment : partialTour) {
-    //     final_connectedComponents[segment.first].push_back(segment.second);
-    //     final_connectedComponents[segment.second].push_back(segment.first);
-    // }
-    
-    //print finalPath
-    // cout << "Final Path:" << endl;
     for (const auto& node : finalPath) {
         cout << node << endl;
     }
     cout << endl;
-
-
-
-    // TODO: update connectedComponentes based on the new tour.
-    
-    // cout << "Connected Components:" << endl;
-    // for (const auto& component : connectedComponents) {
-    //     cout << component.first << ": ";
-    //     for (const auto& node : component.second) {
-    //         cout << node << " ";
-    //     }
-    //     cout << endl;
-    // }
-
-    // //print final_connectedComponents
-    // cout << "Final Connected Components:" << endl;
-    // for (const auto& component : final_connectedComponents) {
-    //     cout << component.first << ": ";
-    //     for (const auto& node : component.second) {
-    //         cout << node << " ";
-    //     }
-    //     cout << endl;
-    // }
-
     
 }
-
-
 
 // Function to calculate Euclidean distance between two points
 double calculateDistance(const Point& p1, const Point& p2) {
@@ -413,4 +325,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
