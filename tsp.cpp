@@ -199,50 +199,36 @@ void savingsHeuristic(const vector<vector<double>>& graph, int hub) {
     }
 
     vector<int> finalPath = getFinalPath(connectedComponents);
-
-    //cout << "before 2-opt: " << endl;
-    //for(auto& node: finalPath){
-    //    cout << node << endl;
-    //}
-    //cout << endl;
     
     // At this point in the code, we have a graph full constructed by the CW algorithm.
     // Now we will run some local optimizations on the graph.
     bool canImprove = true;
-    // int limit_counter = 0;
     int counter = 0;
-    // limit_counter < 100 condition is removed.
     while (canImprove) {
         canImprove = false;
         int path_length = finalPath.size();
-        for (int i = 0; i < path_length - 1; i++) {
-            for (int j = i + 2; j < path_length - 1; j++) {
+        for (int i = 0; i < path_length - 1; ++i) {
+            for (int j = i + 2; j < path_length - 1; ++j) {
 
-                double lengthDelta = -graph[finalPath[i]][finalPath[(i + 1) % path_length]] 
-                - graph[finalPath[j]][finalPath[(j + 1) % path_length]]
+                double lengthDelta = -graph[finalPath[i]][finalPath[(i + 1)]] 
+                - graph[finalPath[j]][finalPath[(j + 1)]]
                 + graph[finalPath[i]][finalPath[j]]
-                + graph[finalPath[(i + 1) % path_length]][finalPath[(j + 1) % path_length]];
+                + graph[finalPath[(i + 1)]][finalPath[(j + 1)]];
                 
-                // abs(j-1) because reversing two indices that are next to each other has no effect
-                if (lengthDelta < 0 && abs(j-i) > 1) {
+                // abs(j-i) not needed anymore because of correct indexing while iterating.
+                if (lengthDelta < 0) {
                     do2Opt(finalPath, i, j);
                     canImprove = true;
                     counter++;
                 }
             }
         }
-
-        // limit_counter++;
     }
 
-
-    // this prints out amount of improvements achieved.
-    cout << "counter: " << counter << endl;
-    //cout << "after 2-opt: " << endl;
     for (const auto& node : finalPath) {
         cout << node << endl;
     }
-    //cout << endl;
+    cout << endl;
     
 }
 
@@ -267,7 +253,6 @@ vector<vector<double>> createGraph(const vector<Point>& points, int size) {
 
     return graph;
 }
-
 
 // Function that will return the index of the most central point of the given points
 int findCentralPoint(std::vector<Point> points){
