@@ -38,13 +38,13 @@ vector<vector<double>> createMatrix(const vector<Point>& points, int size) {
     }
 
     // Print the distance matrix
-   cout << "Distance Matrix:" << endl;
+   /* cout << "Distance Matrix:" << endl;
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             cout << matrix[i][j] << "\t";
         }
         cout << endl;
-    } 
+    }  */
 
     return matrix;
 }
@@ -104,9 +104,9 @@ vector<tuple<int, int>> deriveEdges(vector<int>& changes, char mode) {
     for (int i = start; i < end; i += 2) {
         int a = changes[i];
         int b = changes[i + 1];
-        int first = a > b ? a:b;
-        int second = a > b ? a:b;
-        tuple<int, int> edge = make_tuple(first, second);
+        //int first = a > b ? a:b;
+        //int second = a > b ? a:b;
+        tuple<int, int> edge = make_tuple(a, b);
         edges.push_back(edge);
     }
 
@@ -118,11 +118,18 @@ vector<tuple<int, int>> deriveEdgesFromTour(vector<int> tour) {
     for(int i = 0; i < tour.size(); i++) {
         int a = tour[i];
         int b = tour[(i+1)%tour.size()];
-        int first = a > b ? a:b;
-        int second = a > b ? a:b;
-        tuple<int , int> edge = make_tuple(first, second);
+        //int first = a > b ? a:b;
+        //int second = a > b ? a:b;
+        tuple<int , int> edge = make_tuple(a, b);
+        cout << get<0>(edge);
+        cout << get<1>(edge) << endl;
         edges.push_back(edge);
     }
+
+   /*  for(int i = 0; i < edges.size(); i++) {
+        cout << "constructed tour" ;
+        
+    } */
     return edges;
 }
 
@@ -134,6 +141,12 @@ vector<int> createTourFromEdges(vector<tuple<int, int>> edges) {
 
     int last = get<1>(edge);
     edges.erase(edges.begin()+0);
+
+   /*  cout << "this is edges before" << endl;
+    for (int j = 0; j < edges.size(); ++j) {
+        cout << get<0>(edges[j]);
+        cout << get<1>(edges[j]) << endl;
+    } */
 
     while(!edges.empty()) {
         for(int i = 0; i < edges.size(); i++) {
@@ -147,6 +160,12 @@ vector<int> createTourFromEdges(vector<tuple<int, int>> edges) {
             }
         }
     }
+
+   /*  cout << "this is edges after" << endl;
+    for (int j = 0; j < edges.size(); ++j) {
+        cout << get<0>(edges[j]);
+        cout << get<1>(edges[j]) << endl;
+    } */
     if(tour[0] == tour[tour.size()-1]){
         tour.pop_back();
     }
@@ -155,9 +174,9 @@ vector<int> createTourFromEdges(vector<tuple<int, int>> edges) {
 
 }
 
+
 vector<int> constructNewTour(vector<int> tour, vector<int> changes) {
     vector<tuple<int, int>> currentEdges = deriveEdgesFromTour(tour);
-
     vector<tuple<int, int>> X = deriveEdges(changes, 'X');
     vector<tuple<int, int>> Y = deriveEdges(changes, 'Y');
 
@@ -169,7 +188,9 @@ vector<int> constructNewTour(vector<int> tour, vector<int> changes) {
             }
         }
     }
+
     currentEdges.insert(currentEdges.end(), Y.begin(), Y.end());
+    //cout << "i am in constructNewTour 1" << endl;
     return createTourFromEdges(currentEdges);
 }
 
@@ -191,15 +212,18 @@ bool isDisjunctive(vector<int> tIndex, int x, int y) {
 }
 
 bool isTour(vector<int> tour) {
+    //cout << "this is isTour" << endl;
+    int size = tour.size();
+   // cout << size << endl;
     if (tour.size() != numCities) {
         return false;
     }
 
-    unordered_set<int> visitedVertices;
-
     for (int i = 0; i < tour.size(); i++) {
-        if (!visitedVertices.insert(tour[i]).second) {
-            return false;
+        for(int j = 0; j < tour.size(); j++) {
+            if(tour[i] == tour[j]) {
+                return false;
+            }
         }
     }
 
@@ -277,16 +301,16 @@ int selectNewT(vector<int> tIndex) {
     vector<int> changes;
     changes.insert(changes.end(), tIndex.begin(), tIndex.end());
     changes.push_back(prevNode);
-    changes.push_back(changes[1]);
+    //changes.push_back(changes[1]);
     vector<int> tour1 = constructNewTour(tour, changes);
-
-    if(isTour(tour1)) {
+    //cout << " I am in here selectNewT 1" << endl;
+    bool value = isTour(tour1);
+    if(value) {
+        //cout << "prevNode is = ";
+        //cout << value << endl;
         return prevNode;
     }
-    changes.pop_back();
-    changes.pop_back();
-    changes.push_back(nextNode);
-    changes.push_back(changes[1]);
+    changes[changes.size()-2] = nextNode;
     vector<int> tour2 = constructNewTour(tour, changes);
     if(isTour(tour2)){
         return nextNode;
@@ -337,7 +361,9 @@ void linkernighan(int t1, int t2, int t3) {
     int i = 4;
     while(true) {
         int newT = selectNewT(tIndex);
+        //cout << "i am in linkernighan 1" << endl;
         if(newT == -1) {
+            //cout << "i am in linkernighan 2" << endl;
             break;
         }
 
@@ -356,6 +382,8 @@ void linkernighan(int t1, int t2, int t3) {
         tIndex.push_back(tiplus1);
         Gi -= matrix[tour[newT]][tour[tiplus1]];
         i += 2;
+        //cout << "running i =" ;
+        //cout << i << endl;
     }
     if(gstar > 0) {
         tIndex[k+1] = tIndex[1];
@@ -367,25 +395,29 @@ void linkernighan(int t1, int t2, int t3) {
     }
 }
 
-void improve() {
-    for(int i = 0; i < numCities; i++) {
-        improve(i);
-    }
-}
-
-void improve(int i) {
-    improve(i, false);
-}
-
-void improve(int t1, bool previous) {
+void improveTwo(int t1, bool previous) {
     int t2 = previous ? getAdjacentIdx(t1, -1) : getAdjacentIdx(t1, 1);
     int t3 = getNearestNode(t2);
 
     if(t3 != -1 && matrix[tour[t2]][tour[t3]] < matrix[tour[t1]][tour[t2]]) {
+        //cout << "in if " << endl;
         linkernighan(t1, t2, t3);
     }
     else if(!previous) {
-        improve(t1, true);
+        //cout << "in if else " << endl;
+        improveTwo(t1, true);
+    }
+}
+
+void improveOne(int i) {
+    improveTwo(i, false);
+}
+
+void improve() {
+    for(int i = 0; i < numCities; i++) {
+        //cout << "running " << endl;
+        //cout << i << endl;
+        improveOne(i);
     }
 }
 
@@ -403,11 +435,12 @@ void runHeuristic() {
     double oldDist = 0;
     double newDist = getDistance();
 
-    while(newDist < oldDist) {
+   do {
         oldDist = newDist;
         improve();
         newDist = getDistance();
-    }
+        //cout << "running" << endl;
+    } while (newDist < oldDist);
 }
 
 int main() {
@@ -425,12 +458,34 @@ int main() {
 
     matrix = createMatrix(coordinates, numCities);
     tour = greedyTSP(matrix, numCities);
+    runHeuristic();
 
     for (int j = 0; j < tour.size(); ++j) {
          cout << tour[j] << endl;
     }
-    //cout << endl;
- 
+  
 
+    /* vector<int> edges;
+    edges.push_back(8);
+    edges.push_back(0);
+    edges.push_back(7);
+    edges.push_back(1);
+    edges.push_back(2);
+    edges.push_back(6);
+    edges.push_back(9);
+    edges.push_back(3);
+    edges.push_back(4);
+    edges.push_back(5);
+
+
+    vector<tuple<int, int>> tour = deriveEdgesFromTour(edges);
+     if(edges.empty()) {
+        cout << "Empty" << endl;
+    }
+    //edges.erase(edges.begin()+1);
+    for (int j = 0; j < tour.size(); ++j) {
+        cout << get<0>(tour[j]);
+        cout << get<1>(tour[j]) << endl;
+    }  */
     return 0;
 }
